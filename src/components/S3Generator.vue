@@ -12,6 +12,11 @@
 								<label for="" class="mdl-select_-label">Amazon Region:</label>
 								<select v-model="s3Region" class="mdl-select__input">
 									<option value="https://s3.amazonaws.com" selected>s3.amazonaws.com</option>
+									<option value="https://s3-us-west-1.amazonaws.com">s3-us-west-1.amazonaws.com</option>
+									<option value="https://s3-us-west-2.amazonaws.com">s3-us-west-2.amazonaws.com</option>
+									<option value="https://s3-eu-west-1.amazonaws.com">s3-eu-west-1.amazonaws.com</option>
+									<option value="https://s3-ap-northeast-1.amazonaws.com">s3-ap-northeast-1.amazonaws.com</option>
+									<option value="https://s3-ap-southeast-1.amazonaws.com">s3-ap-southeast-1.amazonaws.com</option>
 									<option value="https://s3-ap-southeast-2.amazonaws.com">s3-ap-southeast-2.amazonaws.com</option>
 								</select>
 							</div>
@@ -47,11 +52,14 @@
 				<div class="mdl-card__title">
 					<h2 class="mdl-card__title-text">Output</h2>
 				</div>
-				<div class="mdl-card__support-text">
-					<div class="mdl-card__group">{{ s3ExpiresAt }}</div>
-					<div class="mdl-card__group">{{ s3Canonical }}</div>
-					<div class="mdl-card__group">{{ s3Signature }}</div>
-					<div class="mdl-card__group">{{{ s3SignedUrl }}}</div>
+				<div class="mdl-card__support-text" v-if="s3Msg !== ''">
+					<div class="mdl-card__group" v-text="s3Msg"></div>
+				</div>
+				<div class="mdl-card__support-text" v-else>
+					<div class="mdl-card__group" v-text="s3ExpiresAt"></div>
+					<div class="mdl-card__group" v-text="s3Canonical"></div>
+					<div class="mdl-card__group" v-text="s3Signature"></div>
+					<div class="mdl-card__group" v-html="s3SignedUrl"></div>
 				</div>
 			</div>
 		</div>
@@ -71,7 +79,8 @@
 				s3ExpiresAt: '',
 				s3Canonical: '',
 				s3Signature: '',
-				s3SignedUrl: ''
+				s3SignedUrl: '',
+				s3Msg: ''
 			}
 		},
 
@@ -103,21 +112,38 @@
 				var canonicalString = s3.generateCanonicalString(self.s3Url, expiresAt, self.s3SecretAccessKey);
 				var signature = s3.generateSignature(self.s3Url, expiresAt, self.s3SecretAccessKey);
 				var signedUrl = s3.generateSignedUrl(self.s3Region, self.s3Url, expiresAt, self.s3AcessKey, signature);
+				var isFlag = false;
 
-				self.$set('s3ExpiresAt', 'Expires at: ' + expiresAt);
-				self.$set('s3Canonical', 'Canonical string: ' + canonicalString);
-				self.$set('s3Signature', 'Signature: ' + signature);
-				self.$set('s3SignedUrl', '<a class="mdl-button mdl-js-button mdl-button--raised" href="' + signedUrl + '" download="' + signedUrl + '"><i class="material-icons">get_app</i><span>Download</span></a>');
+				var xhr = new XMLHttpRequest();
+
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState === XMLHttpRequest.DONE || xhr.status === 200) {
+						isFlag = true;
+					}
+				};
+
+				xhr.open('GET', signature, true);
+				xhr.send();
+
+				if (isFlag) {
+					self.$set('s3ExpiresAt', 'Expires at: ' + expiresAt);
+					self.$set('s3Canonical', 'Canonical string: ' + canonicalString);
+					self.$set('s3Signature', 'Signature: ' + signature);
+					self.$set('s3SignedUrl', '<a class="mdl-button mdl-js-button mdl-button--raised" href="' + signedUrl + '" download="' + signedUrl + '"><i class="material-icons">get_app</i><span>Download</span></a>');
+				} else {
+					self.$set('s3Msg', 'File from S3 can not found.');
+				}
 			},
 
 			resetLinkS3Generator() {
 				var self = this;
 
-				self.$set('s3Region', '');
+				self.$set('s3Region', 'https://s3.amazonaws.com');
 				self.$set('s3Url', '');
 				self.$set('s3Expires', '');
 				self.$set('s3AcessKey', '');
 				self.$set('s3SecretAccessKey', '');
+				self.$set('s3Msg', '');
 			}
 		}
 	}

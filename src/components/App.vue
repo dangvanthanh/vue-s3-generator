@@ -9,7 +9,7 @@
 			<div class="mdl-layout__content-row">
 				<div class="mdl-grid">
 					<div class="mdl-cell mdl-cell--12-col">
-						<h2>Linkit Tools - S3 Signature Generator</h2>
+						<h2>S3 Signature Generator</h2>
 						<p>This is a tool to help you generate one-off signed Amazon S3 urls. For more information about the S3 Signature protocol see <a href="http://s3.amazonaws.com/doc/s3-developer-guide/RESTAuthentication.html" target="_blank">Amazon's Developer Guide</a>. This is useful if you want to store files in a private S3 bucket but still allow access to individuals without having to provide credentials or alter access control lists.</p>
 					</div>
 				</div>
